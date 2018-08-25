@@ -361,7 +361,8 @@ class Strategy(BaseStrategy):
                     # Cancel highest buy order and immediately replace it with new one.
                     self.log.info('Replacing partially filled buy order')
                     self.cancel(highest_buy_order)
-                    self.market_buy(highest_buy_order['quote']['amount'], highest_buy_order['price'])
+                    self.market_buy(highest_buy_order['quote']['amount'], highest_buy_order['price'],
+                                    expiration=self.expiration)
                     self.refresh_balances()
                 else:
                     self.log.debug('Not replacing partially filled order because there is not enough funds')
@@ -428,7 +429,7 @@ class Strategy(BaseStrategy):
                     self.log.info('Replacing partially filled sell order')
                     self.cancel(lowest_sell_order)
                     price = lowest_sell_order['price'] ** -1
-                    self.market_sell(lowest_sell_order['base']['amount'], price)
+                    self.market_sell(lowest_sell_order['base']['amount'], price, expiration=self.expiration)
                     self.refresh_balances()
                 else:
                     self.log.debug('Not replacing partially filled order because there is not enough funds')
@@ -528,7 +529,7 @@ class Strategy(BaseStrategy):
                         self.log.debug('Cancelling sell order in increase_order_sizes(); ' 
                                        'mode: mountain, quote: {}, price: {:.8f}'.format(order_amount, price))
                         self.cancel(order)
-                        self.market_sell(new_order_amount, price)
+                        self.market_sell(new_order_amount, price, expiration=self.expiration)
                         # Only one increase at a time. This prevents running more than one increment round
                         # simultaneously
                         return
@@ -605,7 +606,7 @@ class Strategy(BaseStrategy):
                         self.log.debug('Cancelling buy order in increase_order_sizes(); ' 
                                        'mode: mountain, base: {}, price: {:.8f}'.format(order_amount, order['price']))
                         self.cancel(order)
-                        self.market_buy(new_order_amount, price)
+                        self.market_buy(new_order_amount, price, expiration=self.expiration)
                         # Only one increase at a time. This prevents running more than one increaement round
                         # simultaneously
                         return
@@ -779,7 +780,7 @@ class Strategy(BaseStrategy):
                 amount = self.base_balance['amount'] / price
 
         if place_order:
-            self.market_buy(amount, price)
+            self.market_buy(amount, price, expiration=self.expiration)
 
         return {"amount": amount, "price": price}
 
@@ -805,7 +806,7 @@ class Strategy(BaseStrategy):
                 amount = self.quote_balance['amount']
 
         if place_order:
-            self.market_sell(amount, price)
+            self.market_sell(amount, price, expiration=self.expiration)
 
         return {"amount": amount, "price": price}
 
@@ -834,7 +835,7 @@ class Strategy(BaseStrategy):
                 amount = self.base_balance['amount'] / price
 
         if place_order:
-            self.market_buy(amount, price)
+            self.market_buy(amount, price, expiration=self.expiration)
         else:
             return {"amount": amount, "price": price}
 
@@ -877,7 +878,7 @@ class Strategy(BaseStrategy):
                 amount = self.quote_balance['amount']
 
         if place_order:
-            self.market_sell(amount, price)
+            self.market_sell(amount, price, expiration=self.expiration)
 
         return {"amount": amount, "price": price}
 
@@ -913,7 +914,7 @@ class Strategy(BaseStrategy):
         amount_quote = int(float(amount_quote) * 10 ** precision) / (10 ** precision)
 
         if place_order:
-            self.market_sell(amount_quote, price)
+            self.market_sell(amount_quote, price, expiration=self.expiration)
         else:
             return {"amount": amount_quote, "price": price}
 
@@ -954,7 +955,7 @@ class Strategy(BaseStrategy):
         amount_quote = int(float(amount_quote) * 10 ** precision) / (10 ** precision)
 
         if place_order:
-            self.market_buy(amount_quote, price)
+            self.market_buy(amount_quote, price, expiration=self.expiration)
         else:
             return {"amount": amount_quote, "price": price}
 

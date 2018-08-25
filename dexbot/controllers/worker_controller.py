@@ -31,7 +31,7 @@ class WorkerController:
         }
         strategies['dexbot.strategies.staggered_orders'] = {
             'name': 'Staggered Orders',
-            'form_module': 'dexbot.views.ui.forms.staggered_orders_widget_ui'
+            'form_module': ''
         }
         return strategies
 

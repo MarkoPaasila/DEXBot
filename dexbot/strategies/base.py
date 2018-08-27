@@ -223,8 +223,6 @@ class Worker(Storage, StateMachine, Events):
 
     def get_market_center_price(self):
 
-    @property
-
     def get_external_price(self, source):
 
     def enhance_center_price(self, manual_offset=False, balance_based_offset=False, moving_average=0, weighted_average=0):
@@ -235,8 +233,11 @@ class Worker(Storage, StateMachine, Events):
 
     def get_order_creation_fee(self, fee_asset):
 
+    def get_order_cancellation_fee(self, fee_asset):
+
     def get_market_fee(self):
 
+    @property
     def get_own_market_orders(self):
         """ Return the account's open orders in the current market
         """

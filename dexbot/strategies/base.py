@@ -209,50 +209,133 @@ class Worker(Storage, StateMachine, Events):
             logging.getLogger('dexbot.orders_log'), {}
         )
 
-    def get_lowest_market_sell(self):
+    def get_lowest_market_sell(self, refresh=True):
+        """Returns the lowest sell order that is not own, regardless of order size.
 
-    def get_highest_market_buy(self):
+        :param refresh:
+        :return:
+        """
 
-    def get_lowest_own_sell(self):
+    def get_highest_market_buy(self, refresh=True):
+        """ Returns the highest buy order not owned by worker account, regardless of order size.
 
-    def get_highest_own_buy(self):
+        :param refresh:
+        :return:
+        """
 
-    def get_price_for_amount_buy(self):
+    def get_lowest_own_sell(self, refresh=True):
+        """ Returns lowest own sell order.
 
-    def get_price_for_amount_sell(self):
+        :param refresh:
+        :return:
+        """
 
-    def get_market_center_price(self):
+    def get_highest_own_buy(self, refresh=True):
+        """ Returns highest own buy order.
+
+        :param refresh:
+        :return:
+        """
+
+    def get_price_for_amount_buy(self, amount=None, refresh=True):
+        """ Returns the cumulative price for which you could buy the specified amount of QUOTE.
+        This method must take into account market fee.
+
+        :param amount:
+        :param refresh:
+        :return:
+        """
+
+    def get_price_for_amount_sell(self, amount=None, refresh=True):
+        """ Returns the cumulative price for which you could sell the specified amount of QUOTE
+
+        :param amount:
+        :param refresh:
+        :return:
+        """
+
+    def get_market_center_price(self, depth=0, refresh=True):
+        """ Returns the center price of market including own orders.
+
+        :param depth: 0 = calculate from closest opposite orders. non-zero = calculate from specified depth (quote or base?)
+        :param refresh:
+        :return:
+        """
 
     def get_external_price(self, source):
 
-    def enhance_center_price(self, manual_offset=False, balance_based_offset=False, moving_average=0, weighted_average=0):
+    def enhance_center_price(self, reference=None, manual_offset=False, balance_based_offset=False, moving_average=0, weighted_average=0):
+        """ Returns the passed reference price shifted up or down based on arguments.
 
-    def get_market_spread(self, method):
+        :param reference: Center price to enhance
+        :param manual_offset:
+        :param balance_based_offset:
+        :param moving_average:
+        :param weighted_average:
+        :return:
+        """
 
-    def get_own_spread(self, method):
+    def get_market_spread(self, method, refresh=True):
+        """ Get spread from closest opposite orders, including own.
+
+        :param method:
+        :param refresh:
+        :return:
+        """
+
+    def get_own_spread(self, method, refresh=True):
+        """ Returns the difference between own closest opposite orders.
+        lowest_own_sell_price / highest_own_buy_price - 1
+
+        :param method:
+        :param refresh:
+        :return:
+        """
 
     def get_order_creation_fee(self, fee_asset):
+        """ Returns the cost of creating an order in the asset specified
+
+        :param fee_asset: QUOTE, BASE, BTS, or any other
+        :return:
+        """
 
     def get_order_cancellation_fee(self, fee_asset):
+        """ Returns the order cancellation fee in the specified asset.
 
-    def get_market_fee(self):
+        :param fee_asset:
+        :return:
+        """
+
+    def get_market_fee(self, asset):
+        """ Returns the fee percentage for buying specified asset.
+
+        :param asset:
+        :return: Fee percentage in decimal form (0.025)
+        """
+
+    def restore_order(self, order):
+        """ If an order is partially or completely filled, this will make a new order of original size and price.
+
+        :param order:
+        :return:
+        """
 
     @property
-    def get_own_market_orders(self):
+    def get_own_market_orders(self, refresh=True):
         """ Return the account's open orders in the current market
         """
         self.account.refresh()
         return [o for o in self.account.openorders if self.worker["market"] == o.market and self.account.openorders]
 
     @property
-    def get_all_own_orders(self):
+    def get_all_own_orders(self, refresh=True):
         """ Return the worker's open orders in all markets
         """
         self.account.refresh()
         return [o for o in self.account.openorders]
 
-    def get_own_buy_orders(self, sort=None, orders=None):
-        """ Return buy orders
+    def get_own_buy_orders(self, sort=None, orders=None, refresh=True):
+        """ Return ownbuy orders
             :param str sort: DESC or ASC will sort the orders accordingly, default None.
             :param list orders: List of orders. If None given get all orders from Blockchain.
             :return list buy_orders: List of buy orders only.
@@ -271,8 +354,8 @@ class Worker(Storage, StateMachine, Events):
 
         return buy_orders
 
-    def get_own_sell_orders(self, sort=None, orders=None):
-        """ Return sell orders
+    def get_own_sell_orders(self, sort=None, orders=None, refresh=True):
+        """ Return own sell orders
             :param str sort: DESC or ASC will sort the orders accordingly, default None.
             :param list orders: List of orders. If None given get all orders from Blockchain.
             :return list sell_orders: List of sell orders only.
@@ -300,6 +383,13 @@ class Worker(Storage, StateMachine, Events):
         if order['base']['symbol'] != self.market['base']['symbol']:
             return True
         return False
+
+    def is_buy_order(self, order):
+        """ Checks if the order is a buy order. Returns False if not.
+
+        :param order:
+        :return:
+        """
 
     @staticmethod
     def sort_orders(orders, sort='DESC'):
@@ -491,6 +581,15 @@ class Worker(Storage, StateMachine, Events):
         self.clear_orders()
 
     def buy(self, amount, price, return_none=False, *args, **kwargs):
+        """ Places a buy order in the market
+
+        :param amount:
+        :param price:
+        :param return_none:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         symbol = self.market['base']['symbol']
         precision = self.market['base']['precision']
         base_amount = truncate(price * amount, precision)
@@ -539,6 +638,15 @@ class Worker(Storage, StateMachine, Events):
         return buy_order
 
     def sell(self, amount, price, return_none=False, *args, **kwargs):
+        """ Places a sell order in the market
+
+        :param amount:
+        :param price:
+        :param return_none:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         symbol = self.market['quote']['symbol']
         precision = self.market['quote']['precision']
         quote_amount = truncate(amount, precision)
@@ -621,13 +729,14 @@ class Worker(Storage, StateMachine, Events):
     def purge_worker_data(worker_name):
         Storage.clear_worker_data(worker_name)
 
-    def count_asset(self, order_ids=None, return_asset=False):
+    def count_asset(self, order_ids=None, return_asset=False, refresh=True):
         """ Returns the combined amount of the given order ids and the account balance
             The amounts are returned in quote and base assets of the market
 
             :param order_ids: list of order ids to be added to the balance
             :param return_asset: true if returned values should be Amount instances
             :return: dict with keys quote and base
+        todo: When would we want the sum of a subset of orders? Why order_ids? Maybe just specify asset?
         """
         quote = 0
         base = 0
@@ -655,7 +764,7 @@ class Worker(Storage, StateMachine, Events):
 
         return {'quote': quote, 'base': base}
 
-    def account_total_value(self, return_asset):
+    def account_total_value(self, return_asset, refresh=True):
         """ Returns the total value of the account in given asset
             :param str return_asset: Asset which is wanted as return
             :return: float: Value of the account in one asset
@@ -688,7 +797,7 @@ class Worker(Storage, StateMachine, Events):
         return total_value
 
     @staticmethod
-    def convert_asset(from_value, from_asset, to_asset):
+    def convert_asset(from_value, from_asset, to_asset, refresh=True):
         """ Converts asset to another based on the latest market value
             :param from_value: Amount of the input asset
             :param from_asset: Symbol of the input asset
@@ -700,7 +809,14 @@ class Worker(Storage, StateMachine, Events):
         latest_price = ticker.get('latest', {}).get('price', None)
         return from_value * latest_price
 
-    def get_allocated_assets(self, order_ids, return_asset=False):
+    def get_allocated_assets(self, order_ids, return_asset=False, refresh=True):
+        """ Returns the amount of QUOTE and BASE allocated in orders, and that do not show up in available balance
+
+        :param order_ids:
+        :param return_asset:
+        :param refresh:
+        :return:
+        """
         if not order_ids:
             order_ids = []
         elif isinstance(order_ids, str):
@@ -727,7 +843,13 @@ class Worker(Storage, StateMachine, Events):
 
         return {'quote': quote, 'base': base}
 
-    def calculate_worker_value(self, unit_of_measure):
+    def calculate_worker_value(self, unit_of_measure, refresh=True):
+        """ Returns the combined value of allocated and available QUOTE and BASE, measured in "unit_of_measure".
+
+        :param unit_of_measure:
+        :param refresh:
+        :return:
+        """
 
     def retry_action(self, action, *args, **kwargs):
         """

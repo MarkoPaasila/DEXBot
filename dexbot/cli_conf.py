@@ -31,7 +31,10 @@ STRATEGIES = [
      'name': 'Relative Orders'},
     {'tag': 'stagger',
      'class': 'dexbot.strategies.staggered_orders',
-     'name': 'Staggered Orders'}]
+     'name': 'Staggered Orders'},
+    {'tag': 'supportprice',
+     'class': 'dexbot.strategies.support_price',
+     'name': 'Support Price Strategy'}]
 
 tags_so_far = {'stagger', 'relative'}
 for desc, module in dexbot.helper.find_external_strategies():

@@ -1831,6 +1831,20 @@ class Strategy(StrategyBase):
             self.maintain_strategy()
         self.counter += 1
 
+    # GUI updaters
+    def update_gui_profit(self):
+        profit = 0
+        if self.profit_estimation_method == 'mean_reversion':
+            old_data = self.get_profit_estimation_data(self, seconds=60*60*24*7)
+            earlier_base = old_data['base']
+            earlier_quote = old_data['quote']
+            earlier_price = old_data['price']
+            base_roi = self.count_asset(self,return_asset='base') / earlier_base
+            quote_roi = self.count_asset(self,return_asset='quote') / earlier_quote
+            profit = round(math.sqrt(base_roi * quote_roi), 3)
+        idle_add(self.view.set_worker_profit, self.worker_name, float(profit))
+        self['profit'] = profit
+
     def update_gui_slider(self):
         ticker = self.market.ticker()
         latest_price = ticker.get('latest', {}).get('price', None)

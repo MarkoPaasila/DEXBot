@@ -423,11 +423,15 @@ class Strategy(StrategyBase):
 
     # GUI updaters
     def update_gui_profit(self):
-        # Fixme: profit calculation doesn't work this way, figure out a better way to do this.
-        if self.initial_balance:
-            profit = round((self.orders_balance(None) - self.initial_balance) / self.initial_balance, 3)
-        else:
-            profit = 0
+        profit = 0
+        if self.profit_estimation_method == 'mean_reversion':
+            old_data = self.get_profit_estimation_data(self, seconds=60*60*24*7)
+            earlier_base = old_data['base']
+            earlier_quote = old_data['quote']
+            earlier_price = old_data['price']
+            base_roi = self.count_asset(self,return_asset='base') / earlier_base
+            quote_roi = self.count_asset(self,return_asset='quote') / earlier_quote
+            profit = round(math.sqrt(base_roi * quote_roi), 3)
         idle_add(self.view.set_worker_profit, self.worker_name, float(profit))
         self['profit'] = profit
 

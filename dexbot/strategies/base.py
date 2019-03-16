@@ -958,23 +958,23 @@ class StrategyBase(Storage, StateMachine, Events):
         actual_spread = lowest_own_sell_price / highest_own_buy_price - 1
         return actual_spread
 
-    def fix_order_price(self, price=0, quote_amount=0):
+    def fix_order_price(price=0, quote_amount=0):
         """
         Returns a price and amounts that will match what will actually happen on-chain, and
-        let you contunue using float values in the logic.
+        let you continue using float values in the logic.
         In case the amounts get really small, some returned value might be zero. If so,
         it is an indication that the funds available aren't sufficient, or they are spread into too many orders.
         Amounts are rounded to closest possible decimal. Thus the final price might be lower or higher than intended.
-        
+
         :param float | price: the naively calculated price that is to be corrected
         :param float | quote_amount: the naively calculated amount
         :return dict: values that will result in correctly calculated orders
         """
         quote_amount_float = quote_amount
-        base_amount_float = quote * price
-        quote_precision = (10 ** market['quote']['precision'])
-        base_precision = (10 ** market['base']['precision'])
-        quote_amount_internal = round(quote_amount_float * (quote_precision))
+        base_amount_float = quote_amount * price
+        quote_precision = (10 ** self.market['quote']['precision'])
+        base_precision = (10 ** self.market['base']['precision'])
+        quote_amount_internal = round(quote_amount_float * quote_precision)
         base_amount_internal = round(base_amount_float * (base_precision))
         target_price_internal = price * (base_precision / quote_precision)
         if base_amount_internal < quote_amount_internal:
